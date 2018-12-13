@@ -1,0 +1,9 @@
+[package]
+name = "Hyperbolic-Graph-Generator"
+version = "0.1.0"
+authors = ["Moritz Warning <moritzwarning@web.de>"]
+edition = "2018"
+
+[dependencies]
+GSL = "1.1.0"
+log = "0.4.6"
