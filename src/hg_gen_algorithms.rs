@@ -34,7 +34,12 @@ use crate::hg_formats::*;
 use crate::hg_math::*;
 
 
-const invalid_n_msg : &str = "Number of nodes must be n >= 3.";
+/* Various error messages */
+const invalid_k_bar_msg : &str = "Average degree must be greater than 0 and less than n-1.";
+const invalid_temperature : &str = "Temperature must be positive (t >= 0).";
+const invalid_gamma : &str = "Gamma must be greater or equal 2 (gamma >= 2).";
+const invalid_gamma_with_zeta : &str = "Zeta or eta make sense only at finite values of gamma.";
+
 
 /* ================= graph construction utilities ================= */
 
@@ -203,8 +208,16 @@ pub fn hg_hyperbolic_rgg(
         exp_gamma: f64,
         zeta: f64) -> Result<Graph, &'static str>{
 
-  if n < 3 {
-    return Err(invalid_n_msg);
+  if (k_bar < 1.0) || (k_bar > (n - 1) as f64) {
+    return Err(invalid_k_bar_msg);
+  }
+
+  if exp_gamma < 2.0 {
+    return Err(invalid_gamma);
+  }
+
+  if exp_gamma >= HG_INF_GAMMA {
+    return Err(invalid_gamma_with_zeta);
   }
 
   let mut nodes = Vec::<hg_coordinate_t>::new();
@@ -270,8 +283,20 @@ pub fn hg_hyperbolic_standard(
         temperature: f64,
         zeta: f64) -> Result<Graph, &'static str>{
 
-  if n < 3 {
-    return Err(invalid_n_msg);
+  if (k_bar < 1.0) || (k_bar > (n - 1) as f64) {
+    return Err(invalid_k_bar_msg);
+  }
+
+  if exp_gamma < 2.0 {
+    return Err(invalid_gamma);
+  }
+
+  if exp_gamma >= HG_INF_GAMMA {
+    return Err(invalid_gamma_with_zeta);
+  }
+
+  if temperature < 0.0 {
+    return Err(invalid_temperature);
   }
 
   let mut nodes = Vec::<hg_coordinate_t>::new();
@@ -342,8 +367,12 @@ pub fn hg_soft_configuration_model(
         exp_gamma: f64,
         eta: f64) -> Result<Graph, &'static str>{
 
-  if n < 3 {
-    return Err(invalid_n_msg);
+  if (k_bar < 1.0) || (k_bar > (n - 1) as f64) {
+    return Err(invalid_k_bar_msg);
+  }
+
+  if exp_gamma < 2.0 {
+    return Err(invalid_gamma);
   }
 
   let mut nodes = Vec::<hg_coordinate_t>::new();
@@ -411,8 +440,8 @@ pub fn hg_angular_rgg(
         k_bar: f64,
         zeta: f64) -> Result<Graph, &'static str>{
 
-  if n < 3 {
-    return Err(invalid_n_msg);
+  if (k_bar < 1.0) || (k_bar > (n - 1) as f64) {
+    return Err(invalid_k_bar_msg);
   }
 
   let mut nodes = Vec::<hg_coordinate_t>::new();
@@ -462,8 +491,12 @@ pub fn hg_soft_rgg(
         temperature: f64,
         zeta: f64) -> Result<Graph, &'static str>{
 
-  if n < 3 {
-    return Err(invalid_n_msg);
+  if (k_bar < 1.0) || (k_bar > (n - 1) as f64) {
+    return Err(invalid_k_bar_msg);
+  }
+
+  if temperature < 0.0 {
+    return Err(invalid_temperature);
   }
 
   let mut nodes = Vec::<hg_coordinate_t>::new();
@@ -522,8 +555,8 @@ pub fn hg_erdos_renyi(
         k_bar: f64,
         zeta: f64) -> Result<Graph, &'static str>{
 
-  if n < 3 {
-    return Err(invalid_n_msg);
+  if (k_bar < 1.0) || (k_bar > (n - 1) as f64) {
+    return Err(invalid_k_bar_msg);
   }
 
   let mut nodes = Vec::<hg_coordinate_t>::new();

@@ -139,39 +139,15 @@ double hg_rand_01_wrapper() {
 pub fn hg_graph_generator(
         n: usize,
         k_bar: f64, 
-				exp_gamma: f64,
+        exp_gamma: f64,
         t : f64, 
-				zeta: f64) -> Graph {
+        zeta: f64) -> Result<Graph, &'static str> {
+  // Define a uniform random number distribution which produces
+  // "double "values between 0 and 1 (0 inclusive, 1 exclusive).
   let mut rnd_01 = || { 0.0f64 };//and set seed
   let gt = hg_infer_hg_type(exp_gamma, t);
 
-  /*
-   //Limit cases that we do not take into account
-  if(n < 3){
-    hg_enduser_warning("Number of nodes must be n>=3. \n\t  Quitting.");
-    return 1;
-  }
-  if (k_bar < 1) || (k_bar > n-1){
-    hg_enduser_warning("Avg degree must be greater than 0 and less than n-1. \n\t  Quitting.");   
-    return 1;
-  }
-  if t < 0 {
-    hg_enduser_warning("Temperature must be positive (t >= 0). \n\t  Quitting.");
-    return 1;
-  }  
-  if exp_gamma < 2.0 {
-    hg_enduser_warning("Gamma must be greater or equal 2 (Gamma >= 2). \n\t  Quitting.");
-    return 1;
-  }  
-
-  // Warnings 
-  //if(zeta_provided and (t>=HG_INF_TEMPERATURE || exp_gamma>=HG_INF_GAMMA)) {
-  if (zeta_eta_provided && exp_gamma>=HG_INF_GAMMA) {
-    hg_enduser_warning("zeta or eta make sense only at finite values of gamma. \n\t  The provided value of zeta (or eta) will be ignored.");
-    zeta_eta = 1;
-  }*/
-
-  if let Ok(graph) = match gt {
+  match gt {
     HYPERBOLIC_RGG =>
       hg_hyperbolic_rgg(n, &mut rnd_01, k_bar, exp_gamma, zeta),
     HYPERBOLIC_STANDARD => 
@@ -184,11 +160,5 @@ pub fn hg_graph_generator(
       hg_soft_rgg(n, &mut rnd_01, k_bar, t, zeta),
     ERDOS_RENYI =>
       hg_erdos_renyi(n, &mut rnd_01, k_bar, zeta),
-  } {
-    
   }
-
-  let mut nodes = Vec::<hg_coordinate_t>::new();
-  let mut links = Vec::<hg_connection_t>::new();
-  (nodes, links)
 }
