@@ -96,35 +96,6 @@ fn hg_assign_coordinates(
   }
 }
 
-/*
-fn hg_init_graph(n: u32,
-                 k_bar: f64,
-                 exp_gamma: f64,
-                 t: f64,
-                 zeta_eta: f64,
-                 seed: i32,
-                 gt: hg_graph_type) -> hg_graph_t {
-  debug!("\tGraph initialization");
-  /* initialize the graph structure with the 
-   * parameters provided in input by the user */
-
-  // Init random generator
-  HG_Random::init(seed); // TODO: move out and create hg_graph_t::new()
-
-  hg_graph_t {
-    gtype: gt,
-    expected_n: n,
-    temperature: t,
-    expected_gamma: exp_gamma,
-    expected_degree: k_bar,
-    zeta_eta: zeta_eta,
-    seed: seed,
-    starting_id: 1,
-    data: vec![],
-  }
-}*/
-
-
 /* ================= useful mathematical functions  ================= */
 
 
