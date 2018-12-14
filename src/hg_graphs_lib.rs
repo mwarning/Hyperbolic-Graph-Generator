@@ -124,27 +124,28 @@ void hg_print_graph(const hg_graph_t *g, const string filename) {
   file.close();
   return;
 }
-
-void hg_init_random_generator(const unsigned int seed) {
-  HG_Random::init(seed);
-}
-
-
-double hg_rand_01_wrapper() {
-  // return =  ((double) rand() / (RAND_MAX));
-  return  HG_Random::get_random_01_value();
-}
 */
+
+use rgsl::RngType;
 
 pub fn hg_graph_generator(
         n: usize,
         k_bar: f64, 
         exp_gamma: f64,
         t : f64, 
-        zeta: f64) -> Result<Graph, &'static str> {
+        zeta: f64,
+        seed: u32) -> Result<Graph, &'static str> {
   // Define a uniform random number distribution which produces
-  // "double "values between 0 and 1 (0 inclusive, 1 exclusive).
-  let mut rnd_01 = || { 0.0f64 };//and set seed
+  // "double" values between 0 and 1 (0 inclusive, 1 exclusive).
+  // Equivalent to the boost::mt19937 generator used in the cpp version.
+  rgsl::RngType::env_setup();
+  let rnd_type = rgsl::rng::algorithms::mt19937();
+  let mut rnd = rgsl::Rng::new(&rnd_type).unwrap();
+
+  // set seed
+  rnd.set(seed as usize);
+
+  let mut rnd_01 = || { rnd.uniform() };
   let gt = hg_infer_hg_type(exp_gamma, t);
 
   match gt {

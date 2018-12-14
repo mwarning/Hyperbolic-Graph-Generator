@@ -54,7 +54,7 @@ const invalid_gamma_with_zeta : &str = "Zeta or eta make sense only at finite va
 
 type r_precomputedsinhcosh = HashMap<u64, (f64, f64)>;
 
-// allow f64 as hash map key
+// cast to usize to allow f64 as hash map key
 fn f2u(f: f64) -> u64 {
   unsafe { mem::transmute(f) }
 }
@@ -135,15 +135,11 @@ fn hg_hyperbolic_distance_hyperbolic_rgg_standard(
   let zeta = zeta_eta;
   let delta_theta = HG_PI - (HG_PI - (node1.theta - node2.theta).abs()).abs();
   let (part1, part2) = if let Some(r_psc) = r_psc {
-    println!("hit cache!");
     let n1 = r_psc.get(&f2u(node1.r)).unwrap();
     let n2 = r_psc.get(&f2u(node2.r)).unwrap();
 
     (n1.1 * n2.1,
      n1.0 * n2.0 * delta_theta.cos())
-
-    //(r_psc[node1.r].1 * r_psc[node2.r].1,
-    // r_psc[node1.r].0 * r_psc[node2.r].0 * delta_theta.cos())
   } else {    
     ((zeta * node1.r).cosh() * (zeta * node2.r).cosh(),
      (zeta * node1.r).sinh() * (zeta * node2.r).sinh() * delta_theta.cos())
