@@ -25,9 +25,7 @@
  */
 
 use log::*;
-//use crate::hg_debug;
 use crate::hg_formats::*;
-//use crate::hg_random::*;
 
 
 pub fn hg_infer_hg_type(expected_gamma: f64, temperature: f64) -> hg_graph_type {
@@ -49,21 +47,6 @@ pub fn hg_infer_hg_type(expected_gamma: f64, temperature: f64) -> hg_graph_type 
     }
   }
 }
-
-pub fn hg_infer_hg_type_from_graph(params: &hg_parameters_t) -> hg_graph_type {
-  /*
-  if (graph == NULL) {
-    hg_log_err("Null graph provided.");
-    return hg_graph_type::ERDOS_RENYI;  
-  }*/
-  hg_infer_hg_type(params.expected_gamma, params.temperature)
-}
-
-/*
-pub fn hg_get_coordinate(graph: &hg_graph_t, id: u32) -> hg_coordinate_t {
-  //hg_coordinate_t::new(graph[id].r, graph[id].theta)
-  graph.data[id as usize]
-}*/
 
 /* How to extract from any probability distribution:
  * The probability integral transform states that if X is

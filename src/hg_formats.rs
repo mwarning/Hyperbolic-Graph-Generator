@@ -24,11 +24,9 @@
  *
  */
 
-use std::fmt;
-use log::*;
 
 // constants definition
-pub const HG_PI : f64 = std::f64::consts::PI; // 3.14159265359
+pub const HG_PI : f64 = std::f64::consts::PI;
 pub const HG_INF_TEMPERATURE : f64 = 10.0;
 pub const HG_INF_GAMMA : f64 = 10.0;
 pub const HG_INF_RADIUS : f64 = 1000.0;
@@ -60,7 +58,7 @@ pub enum hg_graph_type {
 /* Parameters describing a graph
  * generated in a hyperbolic space */
 pub struct hg_parameters_t {
-  pub gtype: hg_graph_type, // type => gtype
+  pub gtype: hg_graph_type,
   pub expected_n: usize,
   pub temperature: f64,
   pub expected_gamma: f64,
@@ -76,13 +74,6 @@ impl hg_parameters_t {
              t: f64,
              zeta_eta: f64,
              gtype: hg_graph_type) -> Self {
-    debug!("\tGraph initialization");
-    /* initialize the graph structure with the 
-     * parameters provided in input by the user */
-
-    // Init random generator
-    //HG_Random::init(seed); // TODO: move out and create hg_graph_t::new()
-
     Self {
       gtype: gtype,
       expected_n: n,
@@ -101,13 +92,6 @@ pub struct hg_algorithm_parameters_t {
   pub alpha: f64,
   pub eta: f64,
   pub c: f64,
-}
-
-impl fmt::Debug for hg_algorithm_parameters_t {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-      write!(f, " hg_algorithm_parameters_t {{ radius: {}, alpha: {}, eta: {}, c: {}}}",
-        self.radius, self.alpha, self.eta, self.c)
-    }
 }
 
 impl hg_algorithm_parameters_t {

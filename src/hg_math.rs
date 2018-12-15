@@ -59,21 +59,21 @@ fn hg_fermi_dirac_scm(beta: f64, R: f64, r1: f64, r2: f64) -> f64 {
   return 1.0 / (1.0 + ((beta / 2.0) * (r1 + r2 - R)).exp());
 }
 
-fn hg_integral_heaviside(x: &[f64], dim: usize, fp: &hg_f_params) -> f64 {
+fn hg_integral_heaviside(x: &[f64], _dim: usize, fp: &hg_f_params) -> f64 {
   return 1.0 / HG_PI
     * rho(fp.alpha, fp.R, x[0])
     * rho(fp.alpha, fp.R, x[1])
     * hg_heaviside(fp.zeta, fp.R, x[0], x[1], x[2]);
 }
 
-fn hg_integral_standard(x: &[f64], dim: usize, fp: &hg_f_params) -> f64 {
+fn hg_integral_standard(x: &[f64], _dim: usize, fp: &hg_f_params) -> f64 {
   return 1.0 / HG_PI 
     * rho(fp.alpha, fp.R, x[0])
     * rho(fp.alpha, fp.R, x[1])
     * hg_fermi_dirac_std(fp.beta, fp.zeta, fp.R, x[0], x[1], x[2]);
 }
 
-fn hg_integral_scm(x: &[f64], dim: usize, fp: &hg_f_params) -> f64 {
+fn hg_integral_scm(x: &[f64], _dim: usize, fp: &hg_f_params) -> f64 {
   return rho(fp.alpha, fp.R, x[0])
     * rho(fp.alpha, fp.R, x[1])
     * hg_fermi_dirac_scm(fp.eta, fp.R, x[0], x[1]);
@@ -119,7 +119,6 @@ pub fn hg_get_R(pg: &hg_parameters_t, p: &hg_algorithm_parameters_t) -> f64 {
   let e = if params.beta < 1.0 { 2.5 } else { 2.0 };
   let mut high = n.ln().powf(e).max(50.0);
   let mut res = 0.0;
-  let mut err = 0.0;
   let mut mid = 0.0;
 
   for it in 0..5000 {
@@ -130,9 +129,8 @@ pub fn hg_get_R(pg: &hg_parameters_t, p: &hg_algorithm_parameters_t) -> f64 {
     params.R = mid; // R = mid
 
     // integrate
-    let (res_, err_) = s.integrate(dim, |k| { cb(k, dim, &params) }, &mut xl, &mut xu, calls, &mut r).unwrap();
-    res = res_;
-    err = err_;
+    let (_res, _err) = s.integrate(dim, |k| { cb(k, dim, &params) }, &mut xl, &mut xu, calls, &mut r).unwrap();
+    res = _res;
 
     if res.is_nan() {
       mid *= 1.00001; 
@@ -160,7 +158,7 @@ pub fn hg_get_R(pg: &hg_parameters_t, p: &hg_algorithm_parameters_t) -> f64 {
 }
 
 // Given that |z|>1, we need some transformations
-fn hypergeometric_f(a: f64, mut b: f64, c: f64, z: f64) -> f64 {
+fn hypergeometric_f(_a: f64, mut b: f64, _c: f64, z: f64) -> f64 {
   if b == 1.0 {
     return -1.0 * (1.0 - z).ln() / z;
   } else {
@@ -180,7 +178,7 @@ fn hypergeometric_f(a: f64, mut b: f64, c: f64, z: f64) -> f64 {
   }
 }
 
-pub fn hg_get_lambda(params: &hg_parameters_t, p: &hg_algorithm_parameters_t) -> f64 {
+pub fn hg_get_lambda(params: &hg_parameters_t, _p: &hg_algorithm_parameters_t) -> f64 {
   let beta = 1.0 / params.temperature;
   let n = params.expected_n as f64;
   let k_bar = params.expected_degree as f64;

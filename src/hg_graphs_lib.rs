@@ -126,8 +126,6 @@ void hg_print_graph(const hg_graph_t *g, const string filename) {
 }
 */
 
-use rgsl::RngType;
-
 pub fn hg_graph_generator(
         n: usize,
         k_bar: f64, 
@@ -149,17 +147,17 @@ pub fn hg_graph_generator(
   let gt = hg_infer_hg_type(exp_gamma, t);
 
   match gt {
-    HYPERBOLIC_RGG =>
+    hg_graph_type::HYPERBOLIC_RGG =>
       hg_hyperbolic_rgg(n, &mut rnd_01, k_bar, exp_gamma, zeta),
-    HYPERBOLIC_STANDARD => 
+    hg_graph_type::HYPERBOLIC_STANDARD =>
       hg_hyperbolic_standard(n, &mut rnd_01, k_bar, exp_gamma, t, zeta),
-    SOFT_CONFIGURATION_MODEL =>
+    hg_graph_type::SOFT_CONFIGURATION_MODEL =>
       hg_soft_configuration_model(n, &mut rnd_01, k_bar, exp_gamma, zeta),
-    ANGULAR_RGG =>
+    hg_graph_type::ANGULAR_RGG =>
       hg_angular_rgg(n, &mut rnd_01, k_bar, zeta),
-    SOFT_RGG =>
+    hg_graph_type::SOFT_RGG =>
       hg_soft_rgg(n, &mut rnd_01, k_bar, t, zeta),
-    ERDOS_RENYI =>
+    hg_graph_type::ERDOS_RENYI =>
       hg_erdos_renyi(n, &mut rnd_01, k_bar, zeta),
   }
 }

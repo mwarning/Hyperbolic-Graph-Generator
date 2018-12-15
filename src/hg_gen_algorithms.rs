@@ -147,13 +147,6 @@ fn hg_hyperbolic_distance_hyperbolic_rgg_standard(
   return (part1 - part2).acosh() / zeta;
 }
 
-fn hg_hyperbolic_distance_hyperbolic_rgg_std(
-        zeta_eta: f64,
-        node1: &hg_coordinate_t, 
-        node2: &hg_coordinate_t) -> f64 {
-  hg_hyperbolic_distance_hyperbolic_rgg_standard(zeta_eta, node1, node2, None)
-}
-
 fn hg_connection_probability_hyperbolic_rgg(
           params: &hg_parameters_t,
           p: &hg_algorithm_parameters_t,
@@ -187,8 +180,8 @@ pub fn hg_hyperbolic_rgg(
     return Err(invalid_gamma_with_zeta);
   }
 
-  let mut nodes = Vec::<hg_coordinate_t>::new();
-  let mut links = Vec::<hg_connection_t>::new();
+  let mut nodes = Vec::<hg_coordinate_t>::with_capacity(n);
+  let mut links = Vec::<hg_connection_t>::with_capacity(n);
 
   debug!("-> Hyperbolic Random Geometric Graph");
 
@@ -266,8 +259,8 @@ pub fn hg_hyperbolic_standard(
     return Err(invalid_temperature);
   }
 
-  let mut nodes = Vec::<hg_coordinate_t>::new();
-  let mut links = Vec::<hg_connection_t>::new();
+  let mut nodes = Vec::<hg_coordinate_t>::with_capacity(n);
+  let mut links = Vec::<hg_connection_t>::with_capacity(n);
 
   debug!("-> Hyperbolic Standard Graph\n");
 
@@ -342,8 +335,8 @@ pub fn hg_soft_configuration_model(
     return Err(invalid_gamma);
   }
 
-  let mut nodes = Vec::<hg_coordinate_t>::new();
-  let mut links = Vec::<hg_connection_t>::new();
+  let mut nodes = Vec::<hg_coordinate_t>::with_capacity(n);
+  let mut links = Vec::<hg_connection_t>::with_capacity(n);
 
   debug!("-> Soft Configuration Model Graph\n");
 
@@ -411,8 +404,8 @@ pub fn hg_angular_rgg(
     return Err(invalid_k_bar_msg);
   }
 
-  let mut nodes = Vec::<hg_coordinate_t>::new();
-  let mut links = Vec::<hg_connection_t>::new();
+  let mut nodes = Vec::<hg_coordinate_t>::with_capacity(n);
+  let mut links = Vec::<hg_connection_t>::with_capacity(n);
 
   debug!("-> Angular Random Geometric Graph\n");
 
@@ -466,8 +459,8 @@ pub fn hg_soft_rgg(
     return Err(invalid_temperature);
   }
 
-  let mut nodes = Vec::<hg_coordinate_t>::new();
-  let mut links = Vec::<hg_connection_t>::new();
+  let mut nodes = Vec::<hg_coordinate_t>::with_capacity(n);
+  let mut links = Vec::<hg_connection_t>::with_capacity(n);
 
   debug!("-> Soft Random Geometric Graph\n");
 
@@ -509,8 +502,8 @@ fn hg_hyperbolic_distance_er(
 
 fn hg_connection_probability_er(
         params: &hg_parameters_t,
-        node1: &hg_coordinate_t, 
-        node2: &hg_coordinate_t) -> f64 {
+        _node1: &hg_coordinate_t, 
+        _node2: &hg_coordinate_t) -> f64 {
   // connection probability is given
   // by equation 61
   return 1.0 / (1.0 + (params.expected_n as f64) / (params.expected_degree as f64)); 
@@ -522,12 +515,12 @@ pub fn hg_erdos_renyi(
         k_bar: f64,
         zeta: f64) -> Result<Graph, &'static str>{
 
-  if (k_bar < 1.0) || (k_bar > (n - 1) as f64) {
+  if (k_bar < 1.0) || (k_bar > (n as f64 - 1.0)) {
     return Err(invalid_k_bar_msg);
   }
 
-  let mut nodes = Vec::<hg_coordinate_t>::new();
-  let mut links = Vec::<hg_connection_t>::new();
+  let mut nodes = Vec::<hg_coordinate_t>::with_capacity(n);
+  let mut links = Vec::<hg_connection_t>::with_capacity(n);
 
   debug!("-> Erdos-Renyi Graph\n");
 
@@ -560,7 +553,7 @@ pub fn hg_erdos_renyi(
 /* ================= hyperbolic distance function  ================= */
 
 
-fn hg_hyperbolic_distance(
+pub fn hg_hyperbolic_distance(
         params: &hg_parameters_t,
         node1: &hg_coordinate_t,
         node2: &hg_coordinate_t) -> f64 {
@@ -570,7 +563,7 @@ fn hg_hyperbolic_distance(
 
   match params.gtype {
     hg_graph_type::HYPERBOLIC_RGG | hg_graph_type::HYPERBOLIC_STANDARD => 
-      hg_hyperbolic_distance_hyperbolic_rgg_std(params.zeta_eta, node1, node2),
+      hg_hyperbolic_distance_hyperbolic_rgg_standard(params.zeta_eta, node1, node2, None),
     hg_graph_type::SOFT_CONFIGURATION_MODEL =>
       hg_hyperbolic_distance_scm(node1, node2),
     hg_graph_type::ANGULAR_RGG | hg_graph_type::SOFT_RGG =>
