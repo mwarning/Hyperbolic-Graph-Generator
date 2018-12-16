@@ -31,34 +31,34 @@ pub const HG_INF_TEMPERATURE : f64 = 10.0;
 pub const HG_INF_GAMMA : f64 = 10.0;
 pub const HG_INF_RADIUS : f64 = 1000.0;
 
-pub type Graph = (Vec<hg_coordinate_t>, Vec<hg_connection_t>);
+pub type Graph = (Vec<HgCoordinateType>, Vec<HgConnectionType>);
 
 /* Polar coordinates of a node in a
  * hyperbolic space */
-pub struct hg_coordinate_t {
+pub struct HgCoordinateType {
   pub r: f64,     // radial coordinate, distance from the origin
   pub theta: f64, // angular coordinate, angular distance from a reference point
 }
 
 /* Bidirectional connection between two nodes */
-pub struct hg_connection_t {
+pub struct HgConnectionType {
   pub id: usize,
   pub other_id: usize,
 }
 
-pub enum hg_graph_type {
-  HYPERBOLIC_RGG,
-  HYPERBOLIC_STANDARD,
-  SOFT_CONFIGURATION_MODEL,
-  ANGULAR_RGG, 
-  SOFT_RGG,
-  ERDOS_RENYI
+pub enum HgGraphType {
+  HyperbolicRgg,
+  HyperbolicStandard,
+  SoftConfigurationModel,
+  AngularRgg,
+  SoftRgg,
+  ErdosRenyi
 }
 
 /* Parameters describing a graph
  * generated in a hyperbolic space */
-pub struct hg_parameters_t {
-  pub gtype: hg_graph_type,
+pub struct HgParametersType {
+  pub gtype: HgGraphType,
   pub expected_n: usize,
   pub temperature: f64,
   pub expected_gamma: f64,
@@ -67,13 +67,13 @@ pub struct hg_parameters_t {
   pub starting_id: usize
 }
 
-impl hg_parameters_t {
+impl HgParametersType {
   pub fn new(n: usize,
              k_bar: f64,
              exp_gamma: f64,
              t: f64,
              zeta_eta: f64,
-             gtype: hg_graph_type) -> Self {
+             gtype: HgGraphType) -> Self {
     Self {
       gtype: gtype,
       expected_n: n,
@@ -87,14 +87,14 @@ impl hg_parameters_t {
 }
 
 /* Graph generation internal parameters */
-pub struct hg_algorithm_parameters_t {
+pub struct HgAlgorithmParametersType {
   pub radius: f64,
   pub alpha: f64,
   pub eta: f64,
   pub c: f64,
 }
 
-impl hg_algorithm_parameters_t {
+impl HgAlgorithmParametersType {
   pub fn new() -> Self {
     Self {
       // -1.0 => not relevant for current model
@@ -109,18 +109,18 @@ impl hg_algorithm_parameters_t {
 /* Structures used for numerical *
  * integration. Not all fields   *
  * are used every time           */
-pub struct hg_f_params {
-  pub R: f64,
+pub struct HgFParams {
+  pub rr: f64,
   pub alpha: f64, 
   pub zeta: f64,
   pub eta: f64,
   pub beta: f64,
 }
 
-impl hg_f_params {
-  pub fn new(R: f64, alpha: f64, zeta: f64, eta: f64, beta: f64) -> Self {
+impl HgFParams {
+  pub fn new(rr: f64, alpha: f64, zeta: f64, eta: f64, beta: f64) -> Self {
     Self {
-      R: R,
+      rr: rr,
       alpha: alpha,
       zeta: zeta,
       eta: eta,

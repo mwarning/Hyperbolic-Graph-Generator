@@ -44,7 +44,7 @@ const INVALID_GAMMA_WITH_ZETA : &str = "Zeta or eta make sense only at finite va
 /* ================= graph construction utilities ================= */
 
 
-/* r_precomputedsinhcosh is a structure that contains the precomputed values
+/* RPrecomputedsinhcosh is a structure that contains the precomputed values
  * of sinh(zeta * r) and cosh(zeta * r) for each value of r. It is a map:
  *
  *         r => (sinh(zeta*r), cosh(zeta*r))
@@ -52,7 +52,7 @@ const INVALID_GAMMA_WITH_ZETA : &str = "Zeta or eta make sense only at finite va
  * this structure does not need to be exported outside this coding unit
  */
 
-type r_precomputedsinhcosh = HashMap<u64, (f64, f64)>;
+type RPrecomputedsinhcosh = HashMap<u64, (f64, f64)>;
 
 // cast to usize to allow f64 as hash map key
 fn f2u(f: f64) -> u64 {
@@ -60,34 +60,34 @@ fn f2u(f: f64) -> u64 {
 }
 
 fn hg_assign_coordinates(
-        nodes: &mut Vec<hg_coordinate_t>,
-        params: &hg_parameters_t,
-        in_par: &hg_algorithm_parameters_t,
-        mut r_psc: Option<&mut r_precomputedsinhcosh>,
+        nodes: &mut Vec<HgCoordinateType>,
+        params: &HgParametersType,
+        in_par: &HgAlgorithmParametersType,
+        mut r_psc: Option<&mut RPrecomputedsinhcosh>,
         rnd_01: &mut FnMut() -> f64) {
   debug!("\tAssigning coordinates");
 
   match params.gtype {
-    hg_graph_type::HYPERBOLIC_RGG
-    | hg_graph_type::HYPERBOLIC_STANDARD
-    | hg_graph_type::SOFT_CONFIGURATION_MODEL => {
+    HgGraphType::HyperbolicRgg
+    | HgGraphType::HyperbolicStandard
+    | HgGraphType::SoftConfigurationModel => {
       for _ in 0..params.expected_n {
         let zeta = params.zeta_eta;
         let r = hg_quasi_uniform_radial_coordinate(in_par.radius, in_par.alpha, rnd_01);
         if let Some(ref mut r_psc) = r_psc {
           r_psc.insert(f2u(r), ((zeta * r).sinh(), (zeta * r).cosh()));
         }
-        nodes.push(hg_coordinate_t {
+        nodes.push(HgCoordinateType {
           r: r,
           theta: hg_uniform_angular_coordinate(rnd_01)
         });
       }
     },
-    hg_graph_type::ANGULAR_RGG
-    | hg_graph_type::SOFT_RGG
-    | hg_graph_type::ERDOS_RENYI => {
+    HgGraphType::AngularRgg
+    | HgGraphType::SoftRgg
+    | HgGraphType::ErdosRenyi => {
       for _ in 0..params.expected_n {
-        nodes.push(hg_coordinate_t {
+        nodes.push(HgCoordinateType {
           r: in_par.radius, // HG_INF_RADIUS,
           theta: hg_uniform_angular_coordinate(rnd_01)
         });
@@ -99,15 +99,15 @@ fn hg_assign_coordinates(
 /* ================= useful mathematical functions  ================= */
 
 
-fn hg_get_R_from_numerical_integration(
-        params: &hg_parameters_t,
-        p: &hg_algorithm_parameters_t) -> f64 {
-  return hg_get_R(params, p);
+fn hg_get_rr_from_numerical_integration(
+        params: &HgParametersType,
+        p: &HgAlgorithmParametersType) -> f64 {
+  return hg_get_rr(params, p);
 }
 
-fn hg_get_lambda_from_Gauss_hypergeometric_function(
-        params: &hg_parameters_t,
-        p: &hg_algorithm_parameters_t) -> f64 {
+fn hg_get_lambda_from_gauss_hypergeometric_function(
+        params: &HgParametersType,
+        p: &HgAlgorithmParametersType) -> f64 {
   return hg_get_lambda(params, p);
 }
 
@@ -117,9 +117,9 @@ fn hg_get_lambda_from_Gauss_hypergeometric_function(
 
 fn hg_hyperbolic_distance_hyperbolic_rgg_standard_(
         zeta_eta: f64,
-        node1: &hg_coordinate_t,
-        node2: &hg_coordinate_t,
-        r_psc: Option<&r_precomputedsinhcosh>) -> f64 {
+        node1: &HgCoordinateType,
+        node2: &HgCoordinateType,
+        r_psc: Option<&RPrecomputedsinhcosh>) -> f64 {
   // check if it is the same node
   if (node1.r == node2.r) && (node1.theta == node2.theta) {
     return 0.0;
@@ -140,7 +140,7 @@ fn hg_hyperbolic_distance_hyperbolic_rgg_standard_(
 
     (n1.1 * n2.1,
      n1.0 * n2.0 * delta_theta.cos())
-  } else {    
+  } else {
     ((zeta * node1.r).cosh() * (zeta * node2.r).cosh(),
      (zeta * node1.r).sinh() * (zeta * node2.r).sinh() * delta_theta.cos())
   };
@@ -149,17 +149,17 @@ fn hg_hyperbolic_distance_hyperbolic_rgg_standard_(
 
 pub fn hg_hyperbolic_distance_hyperbolic_rgg_standard(
         zeta_eta: f64,
-        node1: &hg_coordinate_t,
-        node2: &hg_coordinate_t) -> f64 {
+        node1: &HgCoordinateType,
+        node2: &HgCoordinateType) -> f64 {
   hg_hyperbolic_distance_hyperbolic_rgg_standard_(zeta_eta, node1, node2, None)
 }
 
 fn hg_connection_probability_hyperbolic_rgg(
-          params: &hg_parameters_t,
-          p: &hg_algorithm_parameters_t,
-          node1: &hg_coordinate_t,
-          node2: &hg_coordinate_t,
-          r_psc: Option<&r_precomputedsinhcosh>) -> f64 {
+          params: &HgParametersType,
+          p: &HgAlgorithmParametersType,
+          node1: &HgCoordinateType,
+          node2: &HgCoordinateType,
+          r_psc: Option<&RPrecomputedsinhcosh>) -> f64 {
   // equation 32: Heaviside function
   if hg_hyperbolic_distance_hyperbolic_rgg_standard_(params.zeta_eta, node1, node2, r_psc) <= p.radius {
     return 1.0;
@@ -187,22 +187,22 @@ pub fn hg_hyperbolic_rgg(
     return Err(INVALID_GAMMA_WITH_ZETA);
   }
 
-  let mut nodes = Vec::<hg_coordinate_t>::with_capacity(n);
-  let mut links = Vec::<hg_connection_t>::with_capacity(n);
+  let mut nodes = Vec::<HgCoordinateType>::with_capacity(n);
+  let mut links = Vec::<HgConnectionType>::with_capacity(n);
 
   debug!("-> Hyperbolic Random Geometric Graph");
 
-  let params = hg_parameters_t::new(n, k_bar,
+  let params = HgParametersType::new(n, k_bar,
     exp_gamma, 0.0 /* t = 0 */,
-    zeta, hg_graph_type::HYPERBOLIC_RGG);
+    zeta, HgGraphType::HyperbolicRgg);
 
   // computing internal parameters
   debug!("\tInternal parameters computation");
-  let mut p = hg_algorithm_parameters_t::new();
+  let mut p = HgAlgorithmParametersType::new();
   p.alpha = 0.5 * zeta * (exp_gamma - 1.0);
-  p.radius = hg_get_R_from_numerical_integration(&params, &p);
+  p.radius = hg_get_rr_from_numerical_integration(&params, &p);
 
-  let mut r_psc = r_precomputedsinhcosh::new(); 
+  let mut r_psc = RPrecomputedsinhcosh::new();
   hg_assign_coordinates(&mut nodes, &params, &p, Some(&mut r_psc), rnd_01);
 
   debug!("\tInternal parameters:");
@@ -214,7 +214,7 @@ pub fn hg_hyperbolic_rgg(
   for id in 0..params.expected_n {
     for other_id in (id + 1)..params.expected_n {
       if rnd_01() < hg_connection_probability_hyperbolic_rgg(&params, &p, &nodes[id], &nodes[other_id], Some(&r_psc)) {
-        links.push(hg_connection_t {id: id, other_id: other_id});
+        links.push(HgConnectionType {id: id, other_id: other_id});
       }
     }
   }
@@ -223,11 +223,11 @@ pub fn hg_hyperbolic_rgg(
 }
 
 fn hg_connection_probability_hyperbolic_standard(
-        params: &hg_parameters_t,
-        p: &hg_algorithm_parameters_t,
-        node1: &hg_coordinate_t,
-        node2: &hg_coordinate_t,
-        r_psc: Option<&r_precomputedsinhcosh>) -> f64 {
+        params: &HgParametersType,
+        p: &HgAlgorithmParametersType,
+        node1: &HgCoordinateType,
+        node2: &HgCoordinateType,
+        r_psc: Option<&RPrecomputedsinhcosh>) -> f64 {
   // check if it is the same node
   if (node1.r == node2.r) && (node1.theta == node2.theta) {
     return 0.0;
@@ -239,7 +239,7 @@ fn hg_connection_probability_hyperbolic_standard(
   let x = hg_hyperbolic_distance_hyperbolic_rgg_standard_(params.zeta_eta, node1, node2, r_psc);
   let exponent = (1.0 / t) * (zeta / 2.0)  * (x - p.radius);
 
-  return 1.0 / (exponent.exp() + 1.0); 
+  return 1.0 / (exponent.exp() + 1.0);
 }
 
 pub fn hg_hyperbolic_standard(
@@ -266,17 +266,17 @@ pub fn hg_hyperbolic_standard(
     return Err(INVALID_TEMPERATURE);
   }
 
-  let mut nodes = Vec::<hg_coordinate_t>::with_capacity(n);
-  let mut links = Vec::<hg_connection_t>::with_capacity(n);
+  let mut nodes = Vec::<HgCoordinateType>::with_capacity(n);
+  let mut links = Vec::<HgConnectionType>::with_capacity(n);
 
   debug!("-> Hyperbolic Standard Graph\n");
 
-  let params = hg_parameters_t::new(n, k_bar, exp_gamma, temperature,
-    zeta, hg_graph_type::HYPERBOLIC_STANDARD);
+  let params = HgParametersType::new(n, k_bar, exp_gamma, temperature,
+    zeta, HgGraphType::HyperbolicStandard);
 
   // computing internal parameters
   debug!("\tInternal parameters computation");
-  let mut p = hg_algorithm_parameters_t::new();
+  let mut p = HgAlgorithmParametersType::new();
 
   // alpha calculation. different for cold and hot regimes
   p.alpha = if temperature <= 1.0 {
@@ -285,20 +285,20 @@ pub fn hg_hyperbolic_standard(
     0.5 * (zeta / temperature) * (exp_gamma - 1.0)
   };
 
-  p.radius = hg_get_R_from_numerical_integration(&params, &p);
+  p.radius = hg_get_rr_from_numerical_integration(&params, &p);
 
   debug!("\tInternal parameters:");
   debug!("\t\tAlpha: {}", p.alpha);
   debug!("\t\tRadius: {}", p.radius);
 
-  let mut r_psc = r_precomputedsinhcosh::new(); 
+  let mut r_psc = RPrecomputedsinhcosh::new();
   hg_assign_coordinates(&mut nodes, &params, &p, Some(&mut r_psc), rnd_01);
 
   debug!("\tCreating links");
   for id in 0..params.expected_n {
     for other_id in (id + 1)..params.expected_n {
       if rnd_01() < hg_connection_probability_hyperbolic_standard(&params, &p, &nodes[id], &nodes[other_id], Some(&r_psc)) {
-        links.push(hg_connection_t {id: id, other_id: other_id});
+        links.push(HgConnectionType {id: id, other_id: other_id});
       }
     }
   }
@@ -307,24 +307,24 @@ pub fn hg_hyperbolic_standard(
 }
 
 pub fn hg_hyperbolic_distance_scm(
-        node1: &hg_coordinate_t, 
-        node2: &hg_coordinate_t) -> f64 {
+        node1: &HgCoordinateType,
+        node2: &HgCoordinateType) -> f64 {
   // check if it is the same node
   if (node1.r == node2.r) && (node1.theta == node2.theta) {
     return 0.0;
   }
-  // curvature is infinite, so 1/zeta goes to zero  
+  // curvature is infinite, so 1/zeta goes to zero
   return node1.r + node2.r;
 }
 
 fn hg_connection_probability_scm(
-        p: &hg_algorithm_parameters_t,
-        node1: &hg_coordinate_t, 
-        node2: &hg_coordinate_t) -> f64 {
+        p: &HgAlgorithmParametersType,
+        node1: &HgCoordinateType,
+        node2: &HgCoordinateType) -> f64 {
   // equation (39)
   let x = hg_hyperbolic_distance_scm(node1, node2);
   let exponent = (p.eta / 2.0) * (x - p.radius);
-  return 1.0 / (exponent.exp() + 1.0); 
+  return 1.0 / (exponent.exp() + 1.0);
 }
 
 pub fn hg_soft_configuration_model(
@@ -342,23 +342,23 @@ pub fn hg_soft_configuration_model(
     return Err(INVALID_GAMMA);
   }
 
-  let mut nodes = Vec::<hg_coordinate_t>::with_capacity(n);
-  let mut links = Vec::<hg_connection_t>::with_capacity(n);
+  let mut nodes = Vec::<HgCoordinateType>::with_capacity(n);
+  let mut links = Vec::<HgConnectionType>::with_capacity(n);
 
   debug!("-> Soft Configuration Model Graph\n");
 
-  let params = hg_parameters_t::new(n, k_bar, exp_gamma,
+  let params = HgParametersType::new(n, k_bar, exp_gamma,
     HG_INF_TEMPERATURE /* t = inf */,
-    eta, hg_graph_type::SOFT_CONFIGURATION_MODEL);
+    eta, HgGraphType::SoftConfigurationModel);
 
   // computing internal parameters
   debug!("\tInternal parameters computation");
   // zeta goes to infinity
   //graph.zeta_eta = numeric_limits<double>::max( );
-  let mut p = hg_algorithm_parameters_t::new();
+  let mut p = HgAlgorithmParametersType::new();
   p.alpha = 0.5 * p.eta * (exp_gamma - 1.0);
   p.eta = params.zeta_eta;
-  p.radius = hg_get_R_from_numerical_integration(&params, &p);
+  p.radius = hg_get_rr_from_numerical_integration(&params, &p);
 
   debug!("\t\talpha: {}", p.alpha);
   debug!("\t\teta: {}", p.eta);
@@ -370,7 +370,7 @@ pub fn hg_soft_configuration_model(
   for id in 0..params.expected_n {
     for other_id in (id + 1)..params.expected_n {
       if rnd_01() < hg_connection_probability_scm(&p, &nodes[id], &nodes[other_id]) {
-        links.push(hg_connection_t {id: id, other_id: other_id});
+        links.push(HgConnectionType {id: id, other_id: other_id});
       }
     }
   }
@@ -379,8 +379,8 @@ pub fn hg_soft_configuration_model(
 }
 
 pub fn hg_hyperbolic_distance_angular_soft_rgg(
-        node1: &hg_coordinate_t,
-        node2: &hg_coordinate_t) -> f64 {
+        node1: &HgCoordinateType,
+        node2: &HgCoordinateType) -> f64 {
   // check if it is the same node
   if (node1.r == node2.r) && (node1.theta == node2.theta) {
     return 0.0;
@@ -390,9 +390,9 @@ pub fn hg_hyperbolic_distance_angular_soft_rgg(
 }
 
 fn hg_connection_probability_angular_rgg(
-        params: &hg_parameters_t,
-        node1: &hg_coordinate_t,
-        node2: &hg_coordinate_t) -> f64 {
+        params: &HgParametersType,
+        node1: &HgCoordinateType,
+        node2: &HgCoordinateType) -> f64 {
   // equation 55: Heaviside function
   if hg_hyperbolic_distance_angular_soft_rgg(node1, node2)
      <= (HG_PI * params.expected_degree / (params.expected_n as f64)) {
@@ -411,19 +411,19 @@ pub fn hg_angular_rgg(
     return Err(INVALID_K_BAR_MSG);
   }
 
-  let mut nodes = Vec::<hg_coordinate_t>::with_capacity(n);
-  let mut links = Vec::<hg_connection_t>::with_capacity(n);
+  let mut nodes = Vec::<HgCoordinateType>::with_capacity(n);
+  let mut links = Vec::<HgConnectionType>::with_capacity(n);
 
   debug!("-> Angular Random Geometric Graph\n");
 
-  let params = hg_parameters_t::new(n, k_bar,
+  let params = HgParametersType::new(n, k_bar,
     HG_INF_GAMMA /* exp_gamma = inf */,
     0.0 /* t = 0 */,
-    zeta, hg_graph_type::ANGULAR_RGG);
+    zeta, HgGraphType::AngularRgg);
 
   // computing internal parameters
   debug!("\tInternal parameters computation");
-  let mut p = hg_algorithm_parameters_t::new();
+  let mut p = HgAlgorithmParametersType::new();
   p.radius = HG_INF_RADIUS;
 
   hg_assign_coordinates(&mut nodes, &params, &p, None, rnd_01);
@@ -432,7 +432,7 @@ pub fn hg_angular_rgg(
   for id in 0..params.expected_n {
     for other_id in (id + 1)..params.expected_n {
       if rnd_01() < hg_connection_probability_angular_rgg(&params, &nodes[id], &nodes[other_id]) {
-        links.push(hg_connection_t {id: id, other_id: other_id});
+        links.push(HgConnectionType {id: id, other_id: other_id});
       }
     }
   }
@@ -441,13 +441,13 @@ pub fn hg_angular_rgg(
 }
 
 fn hg_connection_probability_soft_rgg(
-        params: &hg_parameters_t,
-        p: &hg_algorithm_parameters_t,
-        node1: &hg_coordinate_t, 
-        node2: &hg_coordinate_t) -> f64 {
+        params: &HgParametersType,
+        p: &HgAlgorithmParametersType,
+        node1: &HgCoordinateType,
+        node2: &HgCoordinateType) -> f64 {
   let x = hg_hyperbolic_distance_angular_soft_rgg(node1, node2);
   // equation 46
-  let beta = 1.0 / params.temperature;  
+  let beta = 1.0 / params.temperature;
   return 1.0 / (1.0 + p.c * (x / HG_PI).powf(beta));
 }
 
@@ -466,21 +466,21 @@ pub fn hg_soft_rgg(
     return Err(INVALID_TEMPERATURE);
   }
 
-  let mut nodes = Vec::<hg_coordinate_t>::with_capacity(n);
-  let mut links = Vec::<hg_connection_t>::with_capacity(n);
+  let mut nodes = Vec::<HgCoordinateType>::with_capacity(n);
+  let mut links = Vec::<HgConnectionType>::with_capacity(n);
 
   debug!("-> Soft Random Geometric Graph\n");
 
-  let params = hg_parameters_t::new(n, k_bar,
+  let params = HgParametersType::new(n, k_bar,
     HG_INF_GAMMA /* exp_gamma = inf */,
     temperature /* t = 0 */,
-    zeta, hg_graph_type::SOFT_RGG);
+    zeta, HgGraphType::SoftRgg);
 
   // computing internal parameters
   debug!("\tInternal parameters computation");
-  let mut p = hg_algorithm_parameters_t::new();
+  let mut p = HgAlgorithmParametersType::new();
   p.radius = HG_INF_RADIUS;
-  p.c = hg_get_lambda_from_Gauss_hypergeometric_function(&params, &p);
+  p.c = hg_get_lambda_from_gauss_hypergeometric_function(&params, &p);
 
   hg_assign_coordinates(&mut nodes, &params, &p, None, rnd_01);
 
@@ -488,7 +488,7 @@ pub fn hg_soft_rgg(
   for id in 0..params.expected_n {
     for other_id in (id + 1)..params.expected_n {
       if rnd_01() < hg_connection_probability_soft_rgg(&params, &p, &nodes[id], &nodes[other_id]) {
-        links.push(hg_connection_t {id: id, other_id: other_id});
+        links.push(HgConnectionType {id: id, other_id: other_id});
       }
     }
   }
@@ -497,8 +497,8 @@ pub fn hg_soft_rgg(
 }
 
 pub fn hg_hyperbolic_distance_er(
-        node1: &hg_coordinate_t, 
-        node2: &hg_coordinate_t) -> f64 {
+        node1: &HgCoordinateType,
+        node2: &HgCoordinateType) -> f64 {
   // check if it is the same node
   if (node1.r == node2.r) && (node1.theta == node2.theta) {
     return 0.0;
@@ -508,12 +508,12 @@ pub fn hg_hyperbolic_distance_er(
 }
 
 fn hg_connection_probability_er(
-        params: &hg_parameters_t,
-        _node1: &hg_coordinate_t, 
-        _node2: &hg_coordinate_t) -> f64 {
+        params: &HgParametersType,
+        _node1: &HgCoordinateType,
+        _node2: &HgCoordinateType) -> f64 {
   // connection probability is given
   // by equation 61
-  return 1.0 / (1.0 + (params.expected_n as f64) / (params.expected_degree as f64)); 
+  return 1.0 / (1.0 + (params.expected_n as f64) / (params.expected_degree as f64));
 }
 
 pub fn hg_erdos_renyi(
@@ -526,19 +526,19 @@ pub fn hg_erdos_renyi(
     return Err(INVALID_K_BAR_MSG);
   }
 
-  let mut nodes = Vec::<hg_coordinate_t>::with_capacity(n);
-  let mut links = Vec::<hg_connection_t>::with_capacity(n);
+  let mut nodes = Vec::<HgCoordinateType>::with_capacity(n);
+  let mut links = Vec::<HgConnectionType>::with_capacity(n);
 
   debug!("-> Erdos-Renyi Graph\n");
 
-  let params = hg_parameters_t::new(n, k_bar,
+  let params = HgParametersType::new(n, k_bar,
     HG_INF_GAMMA /* exp_gamma = inf */,
     HG_INF_TEMPERATURE /* t = inf */,
-    zeta, hg_graph_type::ERDOS_RENYI);
+    zeta, HgGraphType::ErdosRenyi);
 
   // computing internal parameters
   debug!("\tInternal parameters computation");
-  let mut p = hg_algorithm_parameters_t::new();
+  let mut p = HgAlgorithmParametersType::new();
   p.radius = HG_INF_RADIUS;
 
   debug!("\t\tradius: {} (INF)", HG_INF_RADIUS);
@@ -546,9 +546,9 @@ pub fn hg_erdos_renyi(
 
   debug!("\tCreating links");
   for id in 0..params.expected_n {
-    for other_id in (id + 1)..params.expected_n {  
+    for other_id in (id + 1)..params.expected_n {
       if rnd_01() < hg_connection_probability_er(&params, &nodes[id], &nodes[other_id]) {
-        links.push(hg_connection_t {id: id, other_id: other_id});
+        links.push(HgConnectionType {id: id, other_id: other_id});
       }
     }
   }

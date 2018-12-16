@@ -28,22 +28,22 @@ use log::*;
 use crate::hg_formats::*;
 
 
-pub fn hg_infer_hg_type(expected_gamma: f64, temperature: f64) -> hg_graph_type {
+pub fn hg_infer_hg_type(expected_gamma: f64, temperature: f64) -> HgGraphType {
   if expected_gamma < HG_INF_GAMMA { // finite gamma
     if temperature == 0.0 {
-      hg_graph_type::HYPERBOLIC_RGG
+      HgGraphType::HyperbolicRgg
     } else if temperature < HG_INF_TEMPERATURE {
-      hg_graph_type::HYPERBOLIC_STANDARD
+      HgGraphType::HyperbolicStandard
     } else {
-      hg_graph_type::SOFT_CONFIGURATION_MODEL
+      HgGraphType::SoftConfigurationModel
     }
   } else { // gamma = infinite
     if temperature == 0.0 {
-      hg_graph_type::ANGULAR_RGG
+      HgGraphType::AngularRgg
     } else if temperature < HG_INF_TEMPERATURE {
-      hg_graph_type::SOFT_RGG
+      HgGraphType::SoftRgg
     } else {
-      hg_graph_type::ERDOS_RENYI
+      HgGraphType::ErdosRenyi
     }
   }
 }

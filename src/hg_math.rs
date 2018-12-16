@@ -32,54 +32,54 @@ use std::f64;
 use crate::hg_formats::*;
 
 
-fn rho(alpha: f64, R: f64, r: f64) -> f64 {
-  return alpha * (alpha * (r - R)).exp();
+fn rho(alpha: f64, rr: f64, r: f64) -> f64 {
+  return alpha * (alpha * (r - rr)).exp();
 }
 
-fn hg_heaviside(zeta: f64, R : f64, r1: f64, r2: f64, theta: f64) -> f64 {
+fn hg_heaviside(zeta: f64, rr : f64, r1: f64, r2: f64, theta: f64) -> f64 {
   let x = (1.0 / zeta)
     * ((zeta * r1).cosh() * (zeta * r2).cosh()
     - (zeta * r1).sinh() * (zeta * r2).sinh() * theta.cos()).acosh();
-  if x >= R {
+  if x >= rr {
     return 0.0;
   } else {
     return 1.0;
   }
 }
 
-fn hg_fermi_dirac_std(beta: f64, zeta: f64, R: f64, r1: f64, r2: f64, theta: f64) -> f64 {
+fn hg_fermi_dirac_std(beta: f64, zeta: f64, rr: f64, r1: f64, r2: f64, theta: f64) -> f64 {
   let x = (1.0 / zeta)
     * ((zeta * r1).cosh() * (zeta * r2).cosh()
       -(zeta * r1).sinh() * (zeta * r2).sinh() * theta.cos()).acosh();
   
-  return 1.0 / (1.0 + (beta * zeta / 2.0 * (x - R)).exp());
+  return 1.0 / (1.0 + (beta * zeta / 2.0 * (x - rr)).exp());
 }
 
-fn hg_fermi_dirac_scm(beta: f64, R: f64, r1: f64, r2: f64) -> f64 {  
-  return 1.0 / (1.0 + ((beta / 2.0) * (r1 + r2 - R)).exp());
+fn hg_fermi_dirac_scm(beta: f64, rr: f64, r1: f64, r2: f64) -> f64 {
+  return 1.0 / (1.0 + ((beta / 2.0) * (r1 + r2 - rr)).exp());
 }
 
-fn hg_integral_heaviside(x: &[f64], _dim: usize, fp: &hg_f_params) -> f64 {
+fn hg_integral_heaviside(x: &[f64], _dim: usize, fp: &HgFParams) -> f64 {
   return 1.0 / HG_PI
-    * rho(fp.alpha, fp.R, x[0])
-    * rho(fp.alpha, fp.R, x[1])
-    * hg_heaviside(fp.zeta, fp.R, x[0], x[1], x[2]);
+    * rho(fp.alpha, fp.rr, x[0])
+    * rho(fp.alpha, fp.rr, x[1])
+    * hg_heaviside(fp.zeta, fp.rr, x[0], x[1], x[2]);
 }
 
-fn hg_integral_standard(x: &[f64], _dim: usize, fp: &hg_f_params) -> f64 {
+fn hg_integral_standard(x: &[f64], _dim: usize, fp: &HgFParams) -> f64 {
   return 1.0 / HG_PI 
-    * rho(fp.alpha, fp.R, x[0])
-    * rho(fp.alpha, fp.R, x[1])
-    * hg_fermi_dirac_std(fp.beta, fp.zeta, fp.R, x[0], x[1], x[2]);
+    * rho(fp.alpha, fp.rr, x[0])
+    * rho(fp.alpha, fp.rr, x[1])
+    * hg_fermi_dirac_std(fp.beta, fp.zeta, fp.rr, x[0], x[1], x[2]);
 }
 
-fn hg_integral_scm(x: &[f64], _dim: usize, fp: &hg_f_params) -> f64 {
-  return rho(fp.alpha, fp.R, x[0])
-    * rho(fp.alpha, fp.R, x[1])
-    * hg_fermi_dirac_scm(fp.eta, fp.R, x[0], x[1]);
+fn hg_integral_scm(x: &[f64], _dim: usize, fp: &HgFParams) -> f64 {
+  return rho(fp.alpha, fp.rr, x[0])
+    * rho(fp.alpha, fp.rr, x[1])
+    * hg_fermi_dirac_scm(fp.eta, fp.rr, x[0], x[1]);
 }
 
-pub fn hg_get_R(pg: &hg_parameters_t, p: &hg_algorithm_parameters_t) -> f64 {
+pub fn hg_get_rr(pg: &HgParametersType, p: &HgAlgorithmParametersType) -> f64 {
   let calls = 100000; // number of integral iterations
   let mut xl = [0.0f64; 3];
   let mut xu = [0.0f64; 3];
@@ -87,22 +87,22 @@ pub fn hg_get_R(pg: &hg_parameters_t, p: &hg_algorithm_parameters_t) -> f64 {
   // hyperbolic_rgg and hyperbolic_standard integrals are 3D
   // soft_configuration_model only 2 dimensions
   let (dim, mut params)  = match pg.gtype {
-    hg_graph_type::SOFT_CONFIGURATION_MODEL => {
-      (2, hg_f_params::new(0.0, p.alpha, -1.0, p.eta, -1.0))
+    HgGraphType::SoftConfigurationModel => {
+      (2, HgFParams::new(0.0, p.alpha, -1.0, p.eta, -1.0))
     },
-    hg_graph_type::HYPERBOLIC_STANDARD => {
+    HgGraphType::HyperbolicStandard => {
       xu[2] = HG_PI;
-      (3, hg_f_params::new(0.0, p.alpha, pg.zeta_eta, -1.0, 1.0 / pg.temperature))
+      (3, HgFParams::new(0.0, p.alpha, pg.zeta_eta, -1.0, 1.0 / pg.temperature))
     },
     _ => {
       xu[2] = HG_PI;
-      (3, hg_f_params::new(0.0, p.alpha, pg.zeta_eta, -1.0, -1.0))
+      (3, HgFParams::new(0.0, p.alpha, pg.zeta_eta, -1.0, -1.0))
     }
   };
 
   let cb = match pg.gtype {
-    hg_graph_type::SOFT_CONFIGURATION_MODEL => hg_integral_scm,
-    hg_graph_type::HYPERBOLIC_STANDARD => hg_integral_standard,
+    HgGraphType::SoftConfigurationModel => hg_integral_scm,
+    HgGraphType::HyperbolicStandard => hg_integral_standard,
     _ => hg_integral_heaviside
   };
 
@@ -126,7 +126,7 @@ pub fn hg_get_R(pg: &hg_parameters_t, p: &hg_algorithm_parameters_t) -> f64 {
     mid = (high + low) / 2.0;
     xu[0] = mid;
     xu[1] = mid;
-    params.R = mid; // R = mid
+    params.rr = mid; // rr = mid
 
     // integrate
     let (_res, _err) = s.integrate(dim, |k| { cb(k, dim, &params) }, &mut xl, &mut xu, calls, &mut r).unwrap();
@@ -143,7 +143,7 @@ pub fn hg_get_R(pg: &hg_parameters_t, p: &hg_algorithm_parameters_t) -> f64 {
       }
     }
 
-    debug!("{} - {} - {}", it, n * res, params.R);
+    debug!("{} - {} - {}", it, n * res, params.rr);
     if ((n * res - k_bar).abs() <= eps && !res.is_nan()) || (high <= f64::MIN_POSITIVE) {
       break;
     }
@@ -178,7 +178,7 @@ fn hypergeometric_f(_a: f64, mut b: f64, _c: f64, z: f64) -> f64 {
   }
 }
 
-pub fn hg_get_lambda(params: &hg_parameters_t, _p: &hg_algorithm_parameters_t) -> f64 {
+pub fn hg_get_lambda(params: &HgParametersType, _p: &HgAlgorithmParametersType) -> f64 {
   let beta = 1.0 / params.temperature;
   let n = params.expected_n as f64;
   let k_bar = params.expected_degree as f64;

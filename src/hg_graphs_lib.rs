@@ -30,22 +30,22 @@ use crate::hg_utils::*;
 
 
 pub fn hg_hyperbolic_distance(
-        gtype: hg_graph_type,
-        node1: &hg_coordinate_t,
-        node2: &hg_coordinate_t,
+        gtype: HgGraphType,
+        node1: &HgCoordinateType,
+        node2: &HgCoordinateType,
         zeta_eta: f64) -> f64 {
   if (node1.r == node2.r) && (node1.theta == node2.theta) {
     return 0.0;
   }
 
   match gtype {
-    hg_graph_type::HYPERBOLIC_RGG | hg_graph_type::HYPERBOLIC_STANDARD =>
+    HgGraphType::HyperbolicRgg | HgGraphType::HyperbolicStandard =>
       hg_hyperbolic_distance_hyperbolic_rgg_standard(zeta_eta, node1, node2),
-    hg_graph_type::SOFT_CONFIGURATION_MODEL =>
+    HgGraphType::SoftConfigurationModel =>
       hg_hyperbolic_distance_scm(node1, node2),
-    hg_graph_type::ANGULAR_RGG | hg_graph_type::SOFT_RGG =>
+    HgGraphType::AngularRgg | HgGraphType::SoftRgg =>
       hg_hyperbolic_distance_angular_soft_rgg(node1, node2),
-    hg_graph_type::ERDOS_RENYI =>
+    HgGraphType::ErdosRenyi =>
       hg_hyperbolic_distance_er(node1, node2)
   }
 }
@@ -71,17 +71,17 @@ pub fn hg_graph_generator(
   let gt = hg_infer_hg_type(exp_gamma, t);
 
   match gt {
-    hg_graph_type::HYPERBOLIC_RGG =>
+    HgGraphType::HyperbolicRgg =>
       hg_hyperbolic_rgg(n, &mut rnd_01, k_bar, exp_gamma, zeta),
-    hg_graph_type::HYPERBOLIC_STANDARD =>
+    HgGraphType::HyperbolicStandard =>
       hg_hyperbolic_standard(n, &mut rnd_01, k_bar, exp_gamma, t, zeta),
-    hg_graph_type::SOFT_CONFIGURATION_MODEL =>
+    HgGraphType::SoftConfigurationModel =>
       hg_soft_configuration_model(n, &mut rnd_01, k_bar, exp_gamma, zeta),
-    hg_graph_type::ANGULAR_RGG =>
+    HgGraphType::AngularRgg =>
       hg_angular_rgg(n, &mut rnd_01, k_bar, zeta),
-    hg_graph_type::SOFT_RGG =>
+    HgGraphType::SoftRgg =>
       hg_soft_rgg(n, &mut rnd_01, k_bar, t, zeta),
-    hg_graph_type::ERDOS_RENYI =>
+    HgGraphType::ErdosRenyi =>
       hg_erdos_renyi(n, &mut rnd_01, k_bar, zeta),
   }
 }
