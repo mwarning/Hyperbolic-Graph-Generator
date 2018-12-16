@@ -110,7 +110,7 @@ impl HgAlgorithmParametersType {
  * integration. Not all fields   *
  * are used every time           */
 pub struct HgFParams {
-  pub rr: f64,
+  pub rr: f64, // was named R in c++ code
   pub alpha: f64, 
   pub zeta: f64,
   pub eta: f64,
