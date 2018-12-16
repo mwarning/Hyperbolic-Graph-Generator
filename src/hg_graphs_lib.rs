@@ -28,103 +28,27 @@ use crate::hg_gen_algorithms::*;
 use crate::hg_formats::*;
 use crate::hg_utils::*;
 
-/*
-hg_graph_t * hg_read_graph(const string filename) {
-  // graph_t pointer
-  hg_graph_t *g = NULL;
-  // graph generation parameters
-  string par; // name of parameter
-  // node id
-  int i;
-  int node1,node2;
-  // coordinates
-  double radial;
-  double angular;
-  // opening file
-  ifstream file;
-  int expected_n;
 
-  file.open(filename.c_str(), ios::in);
-  if(!file.fail() and file.is_open()) {
-    // reading first line
-    file >> par >> expected_n;
-    g = new hg_graph_t(expected_n);
-    g.expected_n = expected_n;
-    file >> par >> g.temperature;
-    file >> par >> g.expected_gamma;
-    file >> par >> g.expected_degree;
-    file >> par >> g.zeta_eta;
-    file >> par >> g.seed;
-    file >> par >> g.starting_id;
-    // reading coordinates
-    for(i = 0; i < expected_n; i++) {
-      file >> node1 >> radial >> angular;
-      (*g)[i].r = radial;
-      (*g)[i].theta = angular;
-    }
-    // reading links
-    unsigned int starting_id = g.starting_id;
-    while(file >> node1 >> node2) {
-      add_edge(node1-starting_id, node2-starting_id, *g);
-    }
+pub fn hg_hyperbolic_distance(
+        gtype: hg_graph_type,
+        node1: &hg_coordinate_t,
+        node2: &hg_coordinate_t,
+        zeta_eta: f64) -> f64 {
+  if (node1.r == node2.r) && (node1.theta == node2.theta) {
+    return 0.0;
   }
-  else {
-    // warning
-    hg_log_err("File %s cannot be opened", filename.c_str());
-    return NULL;
+
+  match gtype {
+    hg_graph_type::HYPERBOLIC_RGG | hg_graph_type::HYPERBOLIC_STANDARD =>
+      hg_hyperbolic_distance_hyperbolic_rgg_standard(zeta_eta, node1, node2),
+    hg_graph_type::SOFT_CONFIGURATION_MODEL =>
+      hg_hyperbolic_distance_scm(node1, node2),
+    hg_graph_type::ANGULAR_RGG | hg_graph_type::SOFT_RGG =>
+      hg_hyperbolic_distance_angular_soft_rgg(node1, node2),
+    hg_graph_type::ERDOS_RENYI =>
+      hg_hyperbolic_distance_er(node1, node2)
   }
-  file.close();
-  // infer graph type from parameters 
-  g.type = hg_infer_hg_type(g);
-  return g; 
 }
-
-void hg_print_graph(const hg_graph_t *g, const string filename) {
-
-  if(g == NULL) {
-    hg_log_err("Warning: empty data structure, no file written");
-    return;
-  }
-  ofstream file;
-
-  file.open(filename.c_str(), ios::out);
-  if(!file.fail() and file.is_open()) {
-    file << std::setprecision(10) << std::fixed;
-    // hg_graph parameters
-    file << "N" << "\t" << g.expected_n << "\t";
-    file << "T" << "\t" << g.temperature << "\t";
-    file << "G" << "\t" << g.expected_gamma << "\t";
-    file << "K" << "\t" << g.expected_degree << "\t";
-    if(g.temperature >= HG_INF_TEMPERATURE &&
-       g.expected_gamma < HG_INF_GAMMA) {
-      file << "eta" << "\t" << g.zeta_eta << "\t";
-    }
-    else {
-      file << "Z" << "\t" << g.zeta_eta << "\t";
-    }
-    file << "S" << "\t" << g.seed << "\t";
-    file << "I" << "\t" << g.starting_id << endl;
-    // hg_graph vertex coordinates
-    unsigned int starting_id = g.starting_id;
-    hg_graph_t::vertex_iterator vertexIt, vertexEnd;
-    boost::tie(vertexIt, vertexEnd) = vertices(*g);
-    for (; vertexIt != vertexEnd; ++vertexIt) { 
-      file << *vertexIt + starting_id << "\t";
-      file << (*g)[*vertexIt].r << "\t";
-      file << (*g)[*vertexIt].theta << endl;
-    }
-    // hg_graph edgelist
-    hg_graph_t::edge_iterator edgeIt, edgeEnd;
-    boost::tie(edgeIt, edgeEnd) = edges(*g);
-    for (; edgeIt != edgeEnd; ++edgeIt) { 
-      file << source(*edgeIt, *g) + starting_id << "\t";
-      file << target(*edgeIt, *g) + starting_id << endl;
-    }
-  }
-  file.close();
-  return;
-}
-*/
 
 pub fn hg_graph_generator(
         n: usize,

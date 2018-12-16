@@ -115,9 +115,9 @@ fn hg_get_lambda_from_Gauss_hypergeometric_function(
 /* ================= single model graph generators  ================= */
 
 
-fn hg_hyperbolic_distance_hyperbolic_rgg_standard(
+fn hg_hyperbolic_distance_hyperbolic_rgg_standard_(
         zeta_eta: f64,
-        node1: &hg_coordinate_t, 
+        node1: &hg_coordinate_t,
         node2: &hg_coordinate_t,
         r_psc: Option<&r_precomputedsinhcosh>) -> f64 {
   // check if it is the same node
@@ -147,6 +147,13 @@ fn hg_hyperbolic_distance_hyperbolic_rgg_standard(
   return (part1 - part2).acosh() / zeta;
 }
 
+pub fn hg_hyperbolic_distance_hyperbolic_rgg_standard(
+        zeta_eta: f64,
+        node1: &hg_coordinate_t,
+        node2: &hg_coordinate_t) -> f64 {
+  hg_hyperbolic_distance_hyperbolic_rgg_standard_(zeta_eta, node1, node2, None)
+}
+
 fn hg_connection_probability_hyperbolic_rgg(
           params: &hg_parameters_t,
           p: &hg_algorithm_parameters_t,
@@ -154,7 +161,7 @@ fn hg_connection_probability_hyperbolic_rgg(
           node2: &hg_coordinate_t,
           r_psc: Option<&r_precomputedsinhcosh>) -> f64 {
   // equation 32: Heaviside function
-  if hg_hyperbolic_distance_hyperbolic_rgg_standard(params.zeta_eta, node1, node2, r_psc) <= p.radius {
+  if hg_hyperbolic_distance_hyperbolic_rgg_standard_(params.zeta_eta, node1, node2, r_psc) <= p.radius {
     return 1.0;
   } else {
     return 0.0;
@@ -229,7 +236,7 @@ fn hg_connection_probability_hyperbolic_standard(
   // equation 12: Fermi-Dirac function
   let zeta = params.zeta_eta;
   let t =  params.temperature;
-  let x = hg_hyperbolic_distance_hyperbolic_rgg_standard(params.zeta_eta, node1, node2, r_psc);
+  let x = hg_hyperbolic_distance_hyperbolic_rgg_standard_(params.zeta_eta, node1, node2, r_psc);
   let exponent = (1.0 / t) * (zeta / 2.0)  * (x - p.radius);
 
   return 1.0 / (exponent.exp() + 1.0); 
@@ -299,7 +306,7 @@ pub fn hg_hyperbolic_standard(
   Ok((nodes, links))
 }
 
-fn hg_hyperbolic_distance_scm(
+pub fn hg_hyperbolic_distance_scm(
         node1: &hg_coordinate_t, 
         node2: &hg_coordinate_t) -> f64 {
   // check if it is the same node
@@ -371,7 +378,7 @@ pub fn hg_soft_configuration_model(
   Ok((nodes, links))
 }
 
-fn hg_hyperbolic_distance_angular_soft_rgg(
+pub fn hg_hyperbolic_distance_angular_soft_rgg(
         node1: &hg_coordinate_t,
         node2: &hg_coordinate_t) -> f64 {
   // check if it is the same node
@@ -489,7 +496,7 @@ pub fn hg_soft_rgg(
   Ok((nodes, links))
 }
 
-fn hg_hyperbolic_distance_er(
+pub fn hg_hyperbolic_distance_er(
         node1: &hg_coordinate_t, 
         node2: &hg_coordinate_t) -> f64 {
   // check if it is the same node
@@ -547,28 +554,4 @@ pub fn hg_erdos_renyi(
   }
 
   Ok((nodes, links))
-}
-
-
-/* ================= hyperbolic distance function  ================= */
-
-
-pub fn hg_hyperbolic_distance(
-        params: &hg_parameters_t,
-        node1: &hg_coordinate_t,
-        node2: &hg_coordinate_t) -> f64 {
-  if (node1.r == node2.r) && (node1.theta == node2.theta) {
-    return 0.0;
-  }
-
-  match params.gtype {
-    hg_graph_type::HYPERBOLIC_RGG | hg_graph_type::HYPERBOLIC_STANDARD => 
-      hg_hyperbolic_distance_hyperbolic_rgg_standard(params.zeta_eta, node1, node2, None),
-    hg_graph_type::SOFT_CONFIGURATION_MODEL =>
-      hg_hyperbolic_distance_scm(node1, node2),
-    hg_graph_type::ANGULAR_RGG | hg_graph_type::SOFT_RGG =>
-      hg_hyperbolic_distance_angular_soft_rgg(node1, node2),
-    hg_graph_type::ERDOS_RENYI =>
-      hg_hyperbolic_distance_er(node1, node2)
-  }
 }
