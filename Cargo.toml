@@ -5,6 +5,12 @@ description = "Create different types of hyperbolic graphs."
 authors = ["Moritz Warning <moritzwarning@web.de>"]
 edition = "2018"
 
+license = "GPL-3.0-or-later"
+keywords = ["hyperbolic", "graph"]
+categories = ["algorithms", "science"]
+documentation = "https://github.com/mwarning/Hyperbolic-Graph-Generator"
+homepage = "https://github.com/mwarning/Hyperbolic-Graph-Generator"
+
 [dependencies]
 GSL = "1.1.0"
 log = "0.4.6"
