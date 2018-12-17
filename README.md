@@ -1,6 +1,7 @@
 # Hyperbolic-Graph-Generator
 
-A port of [Hyperbolic-Graph-Generator](https://github.com/named-data/Hyperbolic-Graph-Generator) to the Rust programming language for my own experiments.
+
+This is a Rust port of the [Hyperbolic-Graph-Generator 1.0.3](https://github.com/named-data/Hyperbolic-Graph-Generator).
 
 The program generates a graph that describes the geometric coordinates and the links of a hyperbolic graph compatible with the parameters provided by the user. The program generates random hyperbolic graphs according to the models in: http://dx.doi.org/10.1103/PhysRevE.82.036106
 
