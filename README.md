@@ -8,5 +8,6 @@ The program generates a graph that describes the geometric coordinates and the l
 A description of how the hyperbolic graph generator works can be found at: http://arxiv.org/abs/1503.05180
 
 TODO:
-- make into a proper crate
-- add c bindings
+- crate polish
+- better API
+- c bindings
