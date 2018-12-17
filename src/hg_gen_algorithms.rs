@@ -27,8 +27,7 @@
 use std::collections::HashMap;
 use std::mem;
 
-use log::*;
-
+use crate::hg_debug::*;
 use crate::hg_utils::*;
 use crate::hg_formats::*;
 use crate::hg_math::*;
@@ -65,7 +64,7 @@ fn hg_assign_coordinates(
         in_par: &HgAlgorithmParametersType,
         mut r_psc: Option<&mut RPrecomputedsinhcosh>,
         rnd_01: &mut FnMut() -> f64) {
-  debug!("\tAssigning coordinates");
+  hg_debug!("Assigning coordinates");
 
   match params.gtype {
     HgGraphType::HyperbolicRgg
@@ -190,14 +189,14 @@ pub fn hg_hyperbolic_rgg(
   let mut nodes = Vec::<HgCoordinateType>::with_capacity(n);
   let mut links = Vec::<HgConnectionType>::with_capacity(n);
 
-  debug!("-> Hyperbolic Random Geometric Graph");
+  hg_debug!("-> Hyperbolic Random Geometric Graph");
 
   let params = HgParametersType::new(n, k_bar,
     exp_gamma, 0.0 /* t = 0 */,
     zeta, HgGraphType::HyperbolicRgg);
 
   // computing internal parameters
-  debug!("\tInternal parameters computation");
+  hg_debug!("Internal parameters computation");
   let mut p = HgAlgorithmParametersType::new();
   p.alpha = 0.5 * zeta * (exp_gamma - 1.0);
   p.radius = hg_get_rr_from_numerical_integration(&params, &p);
@@ -205,11 +204,11 @@ pub fn hg_hyperbolic_rgg(
   let mut r_psc = RPrecomputedsinhcosh::new();
   hg_assign_coordinates(&mut nodes, &params, &p, Some(&mut r_psc), rnd_01);
 
-  debug!("\tInternal parameters:");
-  debug!("\t\tAlpha: {}", p.alpha);
-  debug!("\t\tRadius: {}", p.radius);
+  hg_debug!("Internal parameters:");
+  hg_debug!("\tAlpha: {}", p.alpha);
+  hg_debug!("\tRadius: {}", p.radius);
 
-  debug!("\tCreating links");
+  hg_debug!("Creating links");
 
   for id in 0..params.expected_n {
     for other_id in (id + 1)..params.expected_n {
@@ -269,13 +268,13 @@ pub fn hg_hyperbolic_standard(
   let mut nodes = Vec::<HgCoordinateType>::with_capacity(n);
   let mut links = Vec::<HgConnectionType>::with_capacity(n);
 
-  debug!("-> Hyperbolic Standard Graph\n");
+  hg_debug!("-> Hyperbolic Standard Graph\n");
 
   let params = HgParametersType::new(n, k_bar, exp_gamma, temperature,
     zeta, HgGraphType::HyperbolicStandard);
 
   // computing internal parameters
-  debug!("\tInternal parameters computation");
+  hg_debug!("Internal parameters computation");
   let mut p = HgAlgorithmParametersType::new();
 
   // alpha calculation. different for cold and hot regimes
@@ -287,14 +286,14 @@ pub fn hg_hyperbolic_standard(
 
   p.radius = hg_get_rr_from_numerical_integration(&params, &p);
 
-  debug!("\tInternal parameters:");
-  debug!("\t\tAlpha: {}", p.alpha);
-  debug!("\t\tRadius: {}", p.radius);
+  hg_debug!("Internal parameters:");
+  hg_debug!("\tAlpha: {}", p.alpha);
+  hg_debug!("\tRadius: {}", p.radius);
 
   let mut r_psc = RPrecomputedsinhcosh::new();
   hg_assign_coordinates(&mut nodes, &params, &p, Some(&mut r_psc), rnd_01);
 
-  debug!("\tCreating links");
+  hg_debug!("Creating links");
   for id in 0..params.expected_n {
     for other_id in (id + 1)..params.expected_n {
       if rnd_01() < hg_connection_probability_hyperbolic_standard(&params, &p, &nodes[id], &nodes[other_id], Some(&r_psc)) {
@@ -345,14 +344,14 @@ pub fn hg_soft_configuration_model(
   let mut nodes = Vec::<HgCoordinateType>::with_capacity(n);
   let mut links = Vec::<HgConnectionType>::with_capacity(n);
 
-  debug!("-> Soft Configuration Model Graph\n");
+  hg_debug!("-> Soft Configuration Model Graph\n");
 
   let params = HgParametersType::new(n, k_bar, exp_gamma,
     HG_INF_TEMPERATURE /* t = inf */,
     eta, HgGraphType::SoftConfigurationModel);
 
   // computing internal parameters
-  debug!("\tInternal parameters computation");
+  hg_debug!("Internal parameters computation");
   // zeta goes to infinity
   //graph.zeta_eta = numeric_limits<double>::max( );
   let mut p = HgAlgorithmParametersType::new();
@@ -360,13 +359,13 @@ pub fn hg_soft_configuration_model(
   p.eta = params.zeta_eta;
   p.radius = hg_get_rr_from_numerical_integration(&params, &p);
 
-  debug!("\t\talpha: {}", p.alpha);
-  debug!("\t\teta: {}", p.eta);
-  debug!("\t\tradius: {}", p.radius);
+  hg_debug!("\talpha: {}", p.alpha);
+  hg_debug!("\teta: {}", p.eta);
+  hg_debug!("\tradius: {}", p.radius);
 
   hg_assign_coordinates(&mut nodes, &params, &p, None, rnd_01);
 
-  debug!("\tCreating links");
+  hg_debug!("Creating links");
   for id in 0..params.expected_n {
     for other_id in (id + 1)..params.expected_n {
       if rnd_01() < hg_connection_probability_scm(&p, &nodes[id], &nodes[other_id]) {
@@ -414,7 +413,7 @@ pub fn hg_angular_rgg(
   let mut nodes = Vec::<HgCoordinateType>::with_capacity(n);
   let mut links = Vec::<HgConnectionType>::with_capacity(n);
 
-  debug!("-> Angular Random Geometric Graph\n");
+  hg_debug!("-> Angular Random Geometric Graph\n");
 
   let params = HgParametersType::new(n, k_bar,
     HG_INF_GAMMA /* exp_gamma = inf */,
@@ -422,13 +421,13 @@ pub fn hg_angular_rgg(
     zeta, HgGraphType::AngularRgg);
 
   // computing internal parameters
-  debug!("\tInternal parameters computation");
+  hg_debug!("Internal parameters computation");
   let mut p = HgAlgorithmParametersType::new();
   p.radius = HG_INF_RADIUS;
 
   hg_assign_coordinates(&mut nodes, &params, &p, None, rnd_01);
 
-  debug!("\tCreating links");
+  hg_debug!("Creating links");
   for id in 0..params.expected_n {
     for other_id in (id + 1)..params.expected_n {
       if rnd_01() < hg_connection_probability_angular_rgg(&params, &nodes[id], &nodes[other_id]) {
@@ -469,7 +468,7 @@ pub fn hg_soft_rgg(
   let mut nodes = Vec::<HgCoordinateType>::with_capacity(n);
   let mut links = Vec::<HgConnectionType>::with_capacity(n);
 
-  debug!("-> Soft Random Geometric Graph\n");
+  hg_debug!("-> Soft Random Geometric Graph\n");
 
   let params = HgParametersType::new(n, k_bar,
     HG_INF_GAMMA /* exp_gamma = inf */,
@@ -477,14 +476,14 @@ pub fn hg_soft_rgg(
     zeta, HgGraphType::SoftRgg);
 
   // computing internal parameters
-  debug!("\tInternal parameters computation");
+  hg_debug!("Internal parameters computation");
   let mut p = HgAlgorithmParametersType::new();
   p.radius = HG_INF_RADIUS;
   p.c = hg_get_lambda_from_gauss_hypergeometric_function(&params, &p);
 
   hg_assign_coordinates(&mut nodes, &params, &p, None, rnd_01);
 
-  debug!("\tCreating links");
+  hg_debug!("Creating links");
   for id in 0..params.expected_n {
     for other_id in (id + 1)..params.expected_n {
       if rnd_01() < hg_connection_probability_soft_rgg(&params, &p, &nodes[id], &nodes[other_id]) {
@@ -529,7 +528,7 @@ pub fn hg_erdos_renyi(
   let mut nodes = Vec::<HgCoordinateType>::with_capacity(n);
   let mut links = Vec::<HgConnectionType>::with_capacity(n);
 
-  debug!("-> Erdos-Renyi Graph\n");
+  hg_debug!("-> Erdos-Renyi Graph\n");
 
   let params = HgParametersType::new(n, k_bar,
     HG_INF_GAMMA /* exp_gamma = inf */,
@@ -537,14 +536,14 @@ pub fn hg_erdos_renyi(
     zeta, HgGraphType::ErdosRenyi);
 
   // computing internal parameters
-  debug!("\tInternal parameters computation");
+  hg_debug!("Internal parameters computation");
   let mut p = HgAlgorithmParametersType::new();
   p.radius = HG_INF_RADIUS;
 
-  debug!("\t\tradius: {} (INF)", HG_INF_RADIUS);
+  hg_debug!("\tradius: {} (INF)", HG_INF_RADIUS);
   hg_assign_coordinates(&mut nodes, &params, &p, None, rnd_01);
 
-  debug!("\tCreating links");
+  hg_debug!("Creating links");
   for id in 0..params.expected_n {
     for other_id in (id + 1)..params.expected_n {
       if rnd_01() < hg_connection_probability_er(&params, &nodes[id], &nodes[other_id]) {

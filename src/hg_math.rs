@@ -25,10 +25,10 @@
  *
  */
 
-use log::*;
 use std::process;
 use std::f64;
 
+use crate::hg_debug::*;
 use crate::hg_formats::*;
 
 
@@ -121,7 +121,7 @@ pub fn hg_get_rr(pg: &HgParametersType, p: &HgAlgorithmParametersType) -> f64 {
   let mut res = 0.0;
   let mut mid = 0.0;
 
-  for it in 0..5000 {
+  for _ in 0..5000 {
     // set midpoint
     mid = (high + low) / 2.0;
     xu[0] = mid;
@@ -143,14 +143,14 @@ pub fn hg_get_rr(pg: &HgParametersType, p: &HgAlgorithmParametersType) -> f64 {
       }
     }
 
-    debug!("{} - {} - {}", it, n * res, params.rr);
+    hg_debug!("{} - {} - {}", it, n * res, params.rr);
     if ((n * res - k_bar).abs() <= eps && !res.is_nan()) || (high <= f64::MIN_POSITIVE) {
       break;
     }
   }
 
   if res.is_nan() || ((n * res - k_bar).abs() > eps) || (high < f64::MIN_POSITIVE) {
-    error!("Network cannot be generated. Try different parameters.");
+    eprintln!("Network cannot be generated. Try different parameters.");
     process::exit(1);
   }
 

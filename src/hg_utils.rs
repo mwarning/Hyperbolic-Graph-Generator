@@ -24,7 +24,6 @@
  *
  */
 
-use log::*;
 use crate::hg_formats::*;
 
 
@@ -68,7 +67,7 @@ pub fn hg_uniform_radial_coordinate(radius: f64, rnd: &mut FnMut() -> f64) -> f6
   // pag.4, equation (7)
   // distribution: rho(r) = [ sinh(r) / (cosh(radius)-1) ]
   if radius == 0.0 {
-    warn!("Radius = 0.");
+    eprintln!("HGG Warning: Radius = 0.");
     return 0.0;
   }
 
@@ -89,7 +88,7 @@ pub fn hg_quasi_uniform_radial_coordinate(radius: f64, alpha: f64, rnd: &mut FnM
   // pag.6, equation (17)
   // distribution:  rho(r) = alpha * { [alpha * sinh(r)] / cosh(alpha *radius-1) }
   if (radius == 0.0) || (alpha == 0.0) {
-    warn!("Radius = 0 or alpha = 0: discontinuity.");
+    eprintln!("HGG Warning: Radius = 0 or alpha = 0: discontinuity.");
     return 0.0; // alpha = 0 -> limit does not exist (discontinuity)
   }
   // uniformly extracted variable (y)

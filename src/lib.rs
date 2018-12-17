@@ -1,4 +1,6 @@
 
+#[macro_use]
+mod hg_debug;
 mod hg_formats;
 mod hg_math;
 mod hg_utils;

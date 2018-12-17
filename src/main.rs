@@ -1,4 +1,6 @@
 
+#[macro_use]
+mod hg_debug;
 mod hg_formats;
 mod hg_math;
 mod hg_utils;
@@ -10,7 +12,6 @@ use crate::hg_graphs_lib::*;
 
 use std::str::FromStr;
 use std::env;
-use log::*;
 
 
 const NUM_DEFAULT : usize = 100;
@@ -114,7 +115,6 @@ fn main() {
       _ => {
         eprintln!("Unknown argument: {}", args[i]);
         std::process::exit(1);
-        //Err((), )
       }
     }
     i += 1;
@@ -205,7 +205,7 @@ fn main() {
       }
     },
     Err(msg) => {
-      error!("Error: {}", msg);
+      eprintln!("Error: {}", msg);
     }
   }
 }
