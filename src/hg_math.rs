@@ -86,7 +86,7 @@ pub fn hg_get_rr(pg: &HgParametersType, p: &HgAlgorithmParametersType) -> f64 {
 
   // hyperbolic_rgg and hyperbolic_standard integrals are 3D
   // soft_configuration_model only 2 dimensions
-  let (dim, mut params)  = match pg.gtype {
+  let (dim, mut params) = match pg.gtype {
     HgGraphType::SoftConfigurationModel => {
       (2, HgFParams::new(0.0, p.alpha, -1.0, p.eta, -1.0))
     },
@@ -126,7 +126,7 @@ pub fn hg_get_rr(pg: &HgParametersType, p: &HgAlgorithmParametersType) -> f64 {
     mid = (high + low) / 2.0;
     xu[0] = mid;
     xu[1] = mid;
-    params.rr = mid; // rr = mid
+    params.rr = mid; // R = mid
 
     // integrate
     let (_res, _err) = s.integrate(dim, |k| { cb(k, dim, &params) }, &mut xl, &mut xu, calls, &mut r).unwrap();
