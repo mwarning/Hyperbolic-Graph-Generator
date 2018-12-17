@@ -13,17 +13,26 @@ use std::env;
 use log::*;
 
 
+const NUM_DEFAULT : usize = 100;
+const EXP_DEGREE_DEFAULT : f64 = 10.0;
+const EXP_GAMMA_DEFAULT : f64 = 2.0;
+const TEMP_DEFAULT : f64 = 0.0;
+const ZETA_ETA_DEFAULT : f64 = 1.0;
+const SEED_DEFAULT : u32 = 1;
+const OUTPUT_FORMAT_DEFAULT : &'static str = "tsv";
+
+
 fn usage() {
   println!(
     concat!("Generate different types of undirected hyperbolic graphs.\n",
     "\n",
-    " -n\tNumber of nodes to generate\n",
-    " -k\tExpected average degree\n",
-    " -g\tExpected gamma or gamma out\n",
-    " -t\tTemperature\n",
-    " -z\tParameter associated with curvature\n",
-    " -s\tRandom generator seed\n",
-    " -f\tOutput format (tsv or json)\n",
+    " -n\tNumber of nodes to generate (default: {})\n",
+    " -k\tExpected average degree (default: {})\n",
+    " -g\tExpected gamma or gamma out (default: {})\n",
+    " -t\tTemperature (default: {})\n",
+    " -z\tParameter associated with curvature (default: {})\n",
+    " -s\tRandom generator seed (default: {})\n",
+    " -f\tOutput format tsv/json (default: {})\n",
     " -h\tPrint this help\n",
     "\n",
     " Adapted description of the C++ version:\n",
@@ -32,8 +41,10 @@ fn usage() {
     "  The program generates random hyperbolic graphs according to the models in:\n",
     "    * http://dx.doi.org/10.1103/PhysRevE.82.036106\n",
     "  A description of how the hyperbolic graph generator works can be found at:\n",
-    "    * http://arxiv.org/abs/1503.05180\n"
-    ));
+    "    * http://arxiv.org/abs/1503.05180\n"),
+      NUM_DEFAULT, EXP_DEGREE_DEFAULT, EXP_GAMMA_DEFAULT,
+      TEMP_DEFAULT, ZETA_ETA_DEFAULT, SEED_DEFAULT, OUTPUT_FORMAT_DEFAULT
+    );
 }
 
 fn get_arg<T : FromStr>(i: usize, args: &Vec<String>) -> T {
@@ -55,13 +66,13 @@ fn get_arg<T : FromStr>(i: usize, args: &Vec<String>) -> T {
 
 fn main() {
   /* HG Graph Generator: default parameters */
-  let mut num = 100;            // number of nodes in the graph
-  let mut exp_degree = 10.0f64; // expected average degree
-  let mut exp_gamma = 2.0f64;   // expected gamma or gamma out
-  let mut temp = 0.0f64;        // temperature
-  let mut zeta_eta = 1.0f64;    // parameter associated with curvature
-  let mut seed = 1;             // seed for the random number generator
-  let mut output_format = "tsv".to_string();
+  let mut num = NUM_DEFAULT;               // number of nodes in the graph
+  let mut exp_degree = EXP_DEGREE_DEFAULT; // expected average degree
+  let mut exp_gamma = EXP_GAMMA_DEFAULT;   // expected gamma or gamma out
+  let mut temp = TEMP_DEFAULT;             // temperature
+  let mut zeta_eta = ZETA_ETA_DEFAULT;     // parameter associated with curvature
+  let mut seed = SEED_DEFAULT;             // seed for the random number generator
+  let mut output_format = OUTPUT_FORMAT_DEFAULT.to_string();
 
   let args = env::args().collect::<Vec<String>>();
   let mut i = 1;
