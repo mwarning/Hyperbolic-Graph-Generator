@@ -27,22 +27,38 @@ fn usage() {
   println!(
     concat!("Generate different types of undirected hyperbolic graphs.\n",
     "\n",
-    " -n\tNumber of nodes to generate (default: {})\n",
-    " -k\tExpected average degree (default: {})\n",
-    " -g\tExpected gamma or gamma out (default: {})\n",
-    " -t\tTemperature (default: {})\n",
-    " -z\tParameter associated with curvature (default: {})\n",
-    " -s\tRandom generator seed (default: {})\n",
-    " -f\tOutput format tsv/json (default: {})\n",
-    " -h\tPrint this help\n",
+    "PARAMETERS:\n",
+    "\t-n\tNumber of nodes to generate (default: {})\n",
+    "\t-k\tExpected average degree (default: {})\n",
+    "\t-g\tExpected gamma or gamma out (default: {})\n",
+    "\t-t\tTemperature (default: {})\n",
+    "\t-z\tParameter associated with curvature (default: {})\n",
+    "\t-s\tRandom generator seed (default: {})\n",
+    "\t-f\tOutput format tsv/json (default: {})\n",
+    "\t-h\tPrint this help\n",
     "\n",
-    " Adapted description of the C++ version:\n",
-    "  The program generates a graph that describes the geometric coordinates and links\n",
-    "  of a hyperbolic graph compatible with the parameters provided by the user.\n",
-    "  The program generates random hyperbolic graphs according to the models in:\n",
-    "    * http://dx.doi.org/10.1103/PhysRevE.82.036106\n",
-    "  A description of how the hyperbolic graph generator works can be found at:\n",
-    "    * http://arxiv.org/abs/1503.05180\n"),
+    "DESCRIPTION:\n",
+    "\tAdapted description of the C++ version:\n",
+    "\tThe program generates a graph that describes the geometric coordinates and links\n",
+    "\tof a hyperbolic graph compatible with the parameters provided by the user.\n",
+    "\tThe program generates random hyperbolic graphs according to the models in:\n",
+    "\t  * http://dx.doi.org/10.1103/PhysRevE.82.036106\n",
+    "\tA description of how the hyperbolic graph generator works can be found at:\n",
+    "\t  * http://arxiv.org/abs/1503.05180\n",
+    "\n",
+    "OUTPUT:\n",
+    "\tThe program prints TSV or JSON output to the standard output.\n",
+    "\tTSV output is structured the folowing way:\n",
+    "\n",
+    "\t# The first line describes the main graph parameters:\n",
+    "\tN <num nodes> T <temperature> G <gamma> K <avg.degree> Z <zeta> S <seed> I <initial_node_id>\n",
+    "\n",
+    "\t# A line for each node and its polar coordinates:\n",
+    "\t<node_id>\t<radial coordinate>\t<angular coordinate>\n",
+    "\n",
+    "\t# A line for each link:\n",
+    "\t<node_id>\t<node id>\n"
+    ),
       NUM_DEFAULT, EXP_DEGREE_DEFAULT, EXP_GAMMA_DEFAULT,
       TEMP_DEFAULT, ZETA_ETA_DEFAULT, SEED_DEFAULT, OUTPUT_FORMAT_DEFAULT
     );
@@ -122,7 +138,7 @@ fn main() {
 
   // get default string
   fn dstr(b: bool) -> &'static str {
-    if b { "(default)" } else { "" }
+    if b { "\t(default)" } else { "" }
   }
 
   // get comma
@@ -131,10 +147,10 @@ fn main() {
   }
 
   eprintln!("Parameters:");
-  eprintln!(" Number of nodes [n]: {} {}", num, dstr(num == 1000));
-  eprintln!(" Expected average degree [k]: {} {}", exp_degree, dstr(exp_degree == 10.0));
+  eprintln!("\tNumber of nodes [n]:\t\t\t{}{}", num, dstr(num == 1000));
+  eprintln!("\tExpected average degree [k]:\t\t{}{}", exp_degree, dstr(exp_degree == 10.0));
 
-  eprint!(" Expected power-law exponent [g]: ");
+  eprint!("\tExpected power-law exponent [g]:\t");
   if exp_gamma >= HG_INF_GAMMA {
     eprintln!("INF {}", dstr(exp_gamma == 2.0));
   } else {
@@ -142,19 +158,19 @@ fn main() {
   }
 
   if (exp_gamma < HG_INF_GAMMA) && (temp >= HG_INF_TEMPERATURE) {
-    eprintln!(" Ratio zeta/T [eta]: {} {}", zeta_eta, dstr(zeta_eta == 1.0));
+    eprintln!("\tRatio zeta/T [eta]:\t\t{}{}", zeta_eta, dstr(zeta_eta == 1.0));
   } else {
-    eprintln!(" Square root of curvature [z]: {} {}", zeta_eta, dstr(zeta_eta == 1.0));
+    eprintln!("\tSquare root of curvature [z]:\t\t{}{}", zeta_eta, dstr(zeta_eta == 1.0));
   }
 
-  eprint!(" Temperature [t]: ");
+  eprint!("\tTemperature [t]:\t\t\t");
   if temp >= HG_INF_TEMPERATURE {
-    eprintln!("INF {}", dstr(temp == 0.0));
+    eprintln!("INF{}", dstr(temp == 0.0));
   } else {
-    eprintln!("{} {}", temp, dstr(temp == 0.0));
+    eprintln!("{}{}", temp, dstr(temp == 0.0));
   }
 
-  eprintln!(" Seed [s]: {} {}", seed, dstr(seed == 1));
+  eprintln!("\tSeed [s]:\t\t\t\t{}{}\n", seed, dstr(seed == 1));
 
   match hg_graph_generator(num, exp_degree, exp_gamma, temp, zeta_eta, seed) {
     Ok((nodes, links)) => {
@@ -173,7 +189,7 @@ fn main() {
         let nlen = nodes.len();
         println!(" \"nodes\": [");
         for (i, node) in nodes.iter().enumerate() {
-          println!("  {{\"x\": {}, \"y\": {}}}{}", node.r, node.theta, dcom((i + 1) != nlen));
+          println!("  {{\"x\": {:.10}, \"y\": {:.10}}}{}", node.r, node.theta, dcom((i + 1) != nlen));
         }
         println!(" ],");
 
@@ -187,22 +203,24 @@ fn main() {
         println!("}}");
       } else {
         // TSV output
-        print!("#N\t{}\tT\t{}\tG\t{}\tK\t{}\t", num, temp, exp_gamma, exp_degree);
+        let starting_id = 1;
+        print!("N\t{}\tT\t{:.10}\tG\t{:.10}\tK\t{:.10}\t", num, temp, exp_gamma, exp_degree);
         if (temp >= HG_INF_TEMPERATURE) && (exp_gamma < HG_INF_GAMMA) {
-          print!("eta\t{}\t", zeta_eta);
+          print!("eta\t{:.10}\t", zeta_eta);
         } else {
-          print!("Z\t{}\t", zeta_eta);
+          print!("Z\t{:.10}\t", zeta_eta);
         }
-        println!("S\t{}", seed);
+        println!("S\t{}\tI {}", seed, starting_id);
 
-        for node in &nodes {
-          println!("{}\t{}", node.r, node.theta);
+        for (i, node) in nodes.iter().enumerate() {
+          println!("{}\t{:.10}\t{:.10}", i + starting_id, node.r, node.theta);
         }
 
         for link in &links {
-          println!("{}\t{}", link.id, link.other_id);
+          println!("{}\t{}", link.id + starting_id, link.other_id + starting_id);
         }
       }
+      eprintln!("Generated:\t{} links", links.len());
     },
     Err(msg) => {
       eprintln!("Error: {}", msg);
