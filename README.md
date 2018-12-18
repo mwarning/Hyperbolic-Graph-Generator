@@ -11,3 +11,11 @@ TODO:
 - crate polish
 - better API
 - c bindings
+
+## Differences to C++ Version
+
+- twice as fast
+- the graph_properties and greedy_routing tool was not ported
+- slightly different API
+  - C++ uses boost::adjacency_list for the graph representation. In Rust we use two Vectors of node and link objects.
+- json output to the original tsv output format
